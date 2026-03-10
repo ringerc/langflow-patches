@@ -16,7 +16,7 @@ from traceloop.sdk import Traceloop
 from traceloop.sdk.instruments import Instruments
 from typing_extensions import override
 
-from langflow.services.tracing.base import BaseTracer
+from langflow.services.tracing.otlp_base import OTLPTracerBase
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from langflow.services.tracing.schema import Log
 
 
-class TraceloopTracer(BaseTracer):
+class TraceloopTracer(OTLPTracerBase):
     """Traceloop tracer for Langflow."""
 
     def __init__(
@@ -72,6 +72,9 @@ class TraceloopTracer(BaseTracer):
                 name=trace_name,
                 start_time=self._get_current_timestamp(),
             )
+
+            # Store root context for context propagation via OTLPTracerBase
+            self.root_context = trace.set_span_in_context(self.root_span)
 
             with use_span(self.root_span, end_on_exit=False):
                 self.propagator.inject(carrier=self.carrier)

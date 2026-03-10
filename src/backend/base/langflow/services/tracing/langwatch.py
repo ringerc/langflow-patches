@@ -11,7 +11,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from typing_extensions import override
 
 from langflow.schema.data import Data
-from langflow.services.tracing.base import BaseTracer
+from langflow.services.tracing.otlp_base import OTLPTracerBase
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from langflow.services.tracing.schema import Log
 
 
-class LangWatchTracer(BaseTracer):
+class LangWatchTracer(OTLPTracerBase):
     flow_id: str
     tracer_provider = None
 

@@ -69,3 +69,33 @@ class BaseTracer(ABC):
     @abstractmethod
     def get_langchain_callback(self) -> BaseCallbackHandler | None:
         raise NotImplementedError
+
+    def inject_context(self, carrier: dict[str, str], trace_id: str | None = None) -> None:
+        """Inject trace context into a carrier (e.g., HTTP headers) for distributed tracing.
+
+        Default no-op implementation. Override in subclasses that support context propagation.
+
+        Callers should use the helper in src/backend/base/langflow/services/tracing/context_propagation.py
+        rather than directly calling this method on the tracer.
+
+        Args:
+            carrier: Dictionary to inject context into (typically HTTP headers)
+            trace_id: Optional specific trace ID to inject context from, defaults to root context
+        """
+        pass
+
+    def extract_context(self, carrier: dict[str, str]) -> Any:
+        """Extract trace context from a carrier (e.g., HTTP headers) for distributed tracing.
+
+        Default no-op implementation. Override in subclasses that support context propagation.
+
+        Callers should use the helper in src/backend/base/langflow/services/tracing/context_propagation.py
+        rather than directly calling this method on the tracer.
+
+        Args:
+            carrier: Dictionary to extract context from (typically HTTP headers)
+
+        Returns:
+            Extracted context or None if extraction fails or not supported
+        """
+        return None

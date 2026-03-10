@@ -22,7 +22,7 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 from typing_extensions import override
 
 from langflow.schema.message import Message
-from langflow.services.tracing.base import BaseTracer
+from langflow.services.tracing.otlp_base import OTLPTracerBase
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -64,7 +64,7 @@ class CollectingSpanProcessor(SpanProcessor):
         pass
 
 
-class ArizePhoenixTracer(BaseTracer):
+class ArizePhoenixTracer(OTLPTracerBase):
     flow_name: str
     flow_id: str
     chat_input_value: str
@@ -106,6 +106,9 @@ class ArizePhoenixTracer(BaseTracer):
             self.root_span.set_attribute("langflow.session_id", str(self.session_id))
             self.root_span.set_attribute("langflow.flow_name", self.flow_name)
             self.root_span.set_attribute("langflow.flow_id", self.flow_id)
+
+            # Store root context for context propagation via OTLPTracerBase
+            self.root_context = trace.set_span_in_context(self.root_span)
 
             with use_span(self.root_span, end_on_exit=False):
                 self.propagator.inject(carrier=self.carrier)
