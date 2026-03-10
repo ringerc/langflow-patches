@@ -35,6 +35,12 @@ def _get_langwatch_tracer():
     return LangWatchTracer
 
 
+def _get_otlp_tracer():
+    from langflow.services.tracing.otlp import OTLPTracer
+
+    return OTLPTracer
+
+
 def _get_langfuse_tracer():
     from langflow.services.tracing.langfuse import LangFuseTracer
 
@@ -184,6 +190,21 @@ class TracingService(Service):
                 trace_id=trace_context.run_id,
             )
 
+    def _initialize_otlp_tracer(self, trace_context: TraceContext) -> None:
+        if self.deactivated:
+            return
+        if (
+            "otlp" not in trace_context.tracers
+            or trace_context.tracers["otlp"].trace_id != trace_context.run_id
+        ):
+            otlp_tracer = _get_otlp_tracer()
+            trace_context.tracers["otlp"] = otlp_tracer(
+                trace_name=trace_context.run_name,
+                trace_type="chain",
+                project_name=trace_context.project_name,
+                trace_id=trace_context.run_id,
+            )
+
     def _initialize_langfuse_tracer(self, trace_context: TraceContext) -> None:
         if self.deactivated:
             return
@@ -285,6 +306,7 @@ class TracingService(Service):
             await self._start(trace_context)
             self._initialize_langsmith_tracer(trace_context)
             self._initialize_langwatch_tracer(trace_context)
+            self._initialize_otlp_tracer(trace_context)
             self._initialize_langfuse_tracer(trace_context)
             self._initialize_arize_phoenix_tracer(trace_context)
             self._initialize_opik_tracer(trace_context)
